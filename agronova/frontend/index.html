@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgroNova — Smart Farming for Smart India</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C; --gold-light: #F0C040; --gold-bright: #FFD700;
+    --bg: #0a0e1a; --bg2: #0f1525; --card: #111828;
+    --border: #1e2d4a; --text: #f0e6d0; --muted: #7a8aaa;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'DM Mono',monospace; min-height:100vh; }
+  body::before {
+    content:''; position:fixed; inset:0;
+    background-image: linear-gradient(rgba(201,168,76,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.04) 1px,transparent 1px);
+    background-size:40px 40px; z-index:0; pointer-events:none;
+  }
+  .container { max-width:860px; margin:0 auto; padding:30px 20px; position:relative; z-index:1; }
+
+  header { text-align:center; margin-bottom:40px; animation:fadeDown 0.8s ease; }
+  header img { width:130px; height:auto; margin-bottom:12px; }
+  .subtitle { color:var(--muted); font-size:12px; letter-spacing:1px; }
+
+  /* Steps */
+  .steps { display:flex; justify-content:center; gap:0; margin-bottom:36px; flex-wrap:wrap; }
+  .step { display:flex; align-items:center; gap:6px; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); padding:6px 12px; }
+  .step.active { color:var(--gold); } .step.done { color:var(--gold-bright); }
+  .step-num { width:22px; height:22px; border-radius:50%; border:1px solid currentColor; display:flex; align-items:center; justify-content:center; font-size:9px; }
+  .step-line { width:24px; height:1px; background:var(--border); }
+
+  /* Cards */
+  .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:28px; margin-bottom:20px; animation:fadeUp 0.5s ease both; }
+  .card-title { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color:var(--gold); margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+  .card-desc { color:var(--muted); font-size:11px; margin-bottom:24px; }
+
+  /* Inputs */
+  .input-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; }
+  .input-group { display:flex; flex-direction:column; gap:6px; }
+  label { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); }
+  input, select {
+    background:var(--bg2); border:1px solid var(--border); border-radius:10px;
+    color:var(--text); font-family:'DM Mono',monospace; font-size:13px;
+    padding:11px 14px; outline:none; transition:border-color 0.2s,box-shadow 0.2s; width:100%;
+  }
+  input:focus, select:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,168,76,0.12); }
+  select option { background:#1a2a3a; }
+  .unit { font-size:10px; color:var(--muted); }
+
+  /* Buttons */
+  .btn {
+    display:inline-flex; align-items:center; gap:8px;
+    background:linear-gradient(135deg,var(--gold),var(--gold-bright));
+    color:#0a0e1a; border:none; border-radius:12px;
+    font-family:'Playfair Display',serif; font-weight:700; font-size:13px;
+    letter-spacing:1px; padding:12px 28px; cursor:pointer;
+    transition:transform 0.15s,box-shadow 0.15s; margin-top:24px; text-transform:uppercase;
+  }
+  .btn:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(201,168,76,0.3); }
+  .btn:disabled { opacity:0.5; pointer-events:none; }
+  .btn-outline {
+    background:transparent; border:1px solid var(--gold); color:var(--gold);
+    font-family:'DM Mono',monospace; font-size:11px; padding:9px 18px;
+    border-radius:10px; cursor:pointer; transition:all 0.2s; margin-top:0; font-weight:400;
+  }
+  .btn-outline:hover { background:rgba(201,168,76,0.1); }
+
+  /* Language selector */
+  .lang-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .lang-card {
+    background:var(--bg2); border:2px solid var(--border); border-radius:12px;
+    padding:20px; text-align:center; cursor:pointer; transition:all 0.2s;
+  }
+  .lang-card:hover { border-color:var(--gold); transform:translateY(-2px); }
+  .lang-card.selected { border-color:var(--gold-bright); background:rgba(255,215,0,0.06); }
+  .lang-flag { font-size:32px; margin-bottom:8px; }
+  .lang-name { font-family:'Playfair Display',serif; font-size:16px; color:var(--text); }
+  .lang-native { font-size:11px; color:var(--muted); margin-top:4px; }
+
+  /* Weather badge */
+  .weather-badge {
+    display:flex; gap:16px; flex-wrap:wrap;
+    background:linear-gradient(135deg,rgba(201,168,76,0.08),rgba(255,215,0,0.04));
+    border:1px solid rgba(201,168,76,0.2); border-radius:12px; padding:14px 18px;
+    margin-top:16px; font-size:12px;
+  }
+  .weather-item { display:flex; align-items:center; gap:6px; }
+  .weather-item span:first-child { font-size:18px; }
+  .demo-note { color:var(--gold); font-size:10px; background:rgba(201,168,76,0.08); padding:4px 10px; border-radius:20px; }
+
+  /* Crop cards */
+  .crop-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-top:8px; }
+  .crop-card {
+    background:var(--bg2); border:2px solid var(--border); border-radius:14px;
+    padding:20px; cursor:pointer; transition:all 0.2s; position:relative; overflow:hidden;
+  }
+  .crop-card:hover { border-color:var(--gold); transform:translateY(-3px); }
+  .crop-card.selected { border-color:var(--gold-bright); box-shadow:0 0 20px rgba(255,215,0,0.15); }
+  .crop-emoji { font-size:36px; margin-bottom:10px; display:block; }
+  .crop-name { font-family:'Playfair Display',serif; font-size:16px; font-weight:700; margin-bottom:6px; }
+  .match-bar { height:3px; background:var(--border); border-radius:4px; margin:8px 0 4px; overflow:hidden; }
+  .match-fill { height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-bright)); border-radius:4px; transition:width 1s ease; width:0; }
+  .match-pct { font-size:10px; color:var(--gold-bright); }
+  .crop-tags { display:flex; gap:5px; flex-wrap:wrap; margin-top:8px; }
+  .tag { background:rgba(201,168,76,0.1); border:1px solid rgba(201,168,76,0.2); color:var(--gold); font-size:9px; padding:2px 8px; border-radius:20px; }
+
+  /* Info sections */
+  .info-title { font-family:'Playfair Display',serif; font-size:13px; font-weight:700; color:var(--gold-bright); margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; }
+  .info-list { list-style:none; display:flex; flex-direction:column; gap:6px; }
+  .info-list li { font-size:12px; color:var(--text); padding:8px 12px; background:var(--bg2); border-left:3px solid var(--gold); border-radius:0 8px 8px 0; line-height:1.5; }
+  .seed-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-top:6px; }
+  .seed-card { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:12px; font-size:11px; }
+  .seed-card strong { display:block; color:var(--gold); font-family:'Playfair Display',serif; margin-bottom:3px; font-size:12px; }
+  .seed-card span { color:var(--muted); }
+  .highlight-box { background:linear-gradient(135deg,rgba(201,168,76,0.08),rgba(255,215,0,0.04)); border:1px solid rgba(201,168,76,0.2); border-radius:12px; padding:14px 18px; margin-bottom:18px; font-size:12px; line-height:1.6; }
+  hr.divider { border:none; border-top:1px solid var(--border); margin:20px 0; }
+
+  /* Calculator */
+  .calc-result { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:16px; }
+  .calc-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); font-size:12px; }
+  .calc-row:last-child { border-bottom:none; font-weight:600; }
+  .calc-row span:last-child { color:var(--gold); }
+
+  /* Chat */
+  .chat-box { background:var(--bg2); border:1px solid var(--border); border-radius:12px; height:280px; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px; margin-bottom:12px; }
+  .chat-msg { max-width:80%; padding:10px 14px; border-radius:12px; font-size:12px; line-height:1.6; }
+  .chat-msg.user { background:rgba(201,168,76,0.15); border:1px solid rgba(201,168,76,0.2); align-self:flex-end; }
+  .chat-msg.ai { background:rgba(255,255,255,0.05); border:1px solid var(--border); align-self:flex-start; }
+  .chat-msg.ai .ai-label { font-size:10px; color:var(--gold); margin-bottom:4px; display:block; }
+  .chat-input-row { display:flex; gap:10px; }
+  .chat-input { flex:1; background:var(--bg2); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:'DM Mono',monospace; font-size:12px; padding:10px 14px; outline:none; }
+  .chat-input:focus { border-color:var(--gold); }
+  .chat-send { background:linear-gradient(135deg,var(--gold),var(--gold-bright)); color:#0a0e1a; border:none; border-radius:10px; padding:10px 16px; cursor:pointer; font-size:14px; transition:transform 0.15s; }
+  .chat-send:hover { transform:scale(1.05); }
+  .typing { display:flex; gap:4px; padding:10px 14px; align-self:flex-start; }
+  .typing span { width:6px; height:6px; background:var(--gold); border-radius:50%; animation:bounce 1s infinite; }
+  .typing span:nth-child(2) { animation-delay:0.2s; }
+  .typing span:nth-child(3) { animation-delay:0.4s; }
+
+  /* AMD badge */
+  .amd-badge { display:inline-flex; align-items:center; gap:5px; background:rgba(237,28,36,0.1); border:1px solid rgba(237,28,36,0.3); color:#ff4444; font-size:10px; padding:3px 10px; border-radius:20px; letter-spacing:1px; margin-bottom:14px; }
+
+  .hidden { display:none !important; }
+  .loading-text { color:var(--gold); font-size:12px; letter-spacing:2px; animation:pulse 1s infinite; text-align:center; padding:20px; }
+
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <img src="https://i.imgur.com/placeholder.png" id="logoImg" alt="AgroNova" onerror="this.style.display='none'">
+    <div style="font-family:'Playfair Display',serif;font-size:36px;font-weight:800;background:linear-gradient(135deg,#fff,#C9A84C,#FFD700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">AgroNova</div>
+    <p class="subtitle">// Smart Farming for Smart India · Powered by AMD ROCm</p>
+  </header>
+
+  <!-- Step Indicator -->
+  <div class="steps" id="stepIndicator">
+    <div class="step active" id="s1"><div class="step-num">1</div> <span id="st1">Language</span></div>
+    <div class="step-line"></div>
+    <div class="step" id="s2"><div class="step-num">2</div> <span id="st2">Location</span></div>
+    <div class="step-line"></div>
+    <div class="step" id="s3"><div class="step-num">3</div> <span id="st3">Field Data</span></div>
+    <div class="step-line"></div>
+    <div class="step" id="s4"><div class="step-num">4</div> <span id="st4">Crops</span></div>
+    <div class="step-line"></div>
+    <div class="step" id="s5"><div class="step-num">5</div> <span id="st5">Guidance</span></div>
+  </div>
+
+  <!-- STEP 1: Language -->
+  <div id="step1">
+    <div class="card">
+      <div class="card-title">🌐 Select Your Language / भाषा निवडा / भाषा चुनें</div>
+      <div class="card-desc">Choose your preferred language to continue</div>
+      <div class="lang-grid">
+        <div class="lang-card" onclick="selectLanguage('english')">
+          <div class="lang-flag">🇬🇧</div>
+          <div class="lang-name">English</div>
+          <div class="lang-native">English</div>
+        </div>
+        <div class="lang-card" onclick="selectLanguage('hindi')">
+          <div class="lang-flag">🇮🇳</div>
+          <div class="lang-name">हिंदी</div>
+          <div class="lang-native">Hindi</div>
+        </div>
+        <div class="lang-card" onclick="selectLanguage('marathi')">
+          <div class="lang-flag">🇮🇳</div>
+          <div class="lang-name">मराठी</div>
+          <div class="lang-native">Marathi</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: Location -->
+  <div id="step2" class="hidden">
+    <div class="card">
+      <div class="card-title" id="loc-title">📍 Enter Your Location</div>
+      <div class="card-desc" id="loc-desc">We'll fetch real weather data for your area</div>
+      <div class="input-group">
+        <label id="loc-label">Village / City Name</label>
+        <input type="text" id="locationInput" placeholder="e.g. Nashik, Pune, Nagpur..." oninput="clearWeather()">
+      </div>
+      <div id="weatherResult" class="hidden">
+        <div class="weather-badge" id="weatherBadge"></div>
+      </div>
+      <div id="weatherLoading" class="loading-text hidden">Fetching weather data...</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;">
+        <button class="btn" onclick="fetchWeather()" id="fetchWeatherBtn">🌤 Fetch Weather Data</button>
+        <button class="btn-outline" onclick="goBack(1)">← Back</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: Field Data -->
+  <div id="step3" class="hidden">
+    <div class="card">
+      <div class="card-title" id="field-title">🌱 Your Field Details</div>
+      <div class="card-desc" id="field-desc">Tell us about your soil and water availability</div>
+      <div class="input-grid">
+        <div class="input-group">
+          <label id="soil-label">Soil Type</label>
+          <select id="soilType">
+            <option value="loamy">Loamy / दोमट / चिकण माती</option>
+            <option value="clay">Clay / Black / काली मिट्टी / काळी माती</option>
+            <option value="sandy">Sandy / बलुई / वालुकामय</option>
+            <option value="silty">Silty / गाळ / जलोढ़</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label id="water-label">Water Level / Irrigation</label>
+          <select id="waterLevel">
+            <option value="high">High / Plenty / भरपूर पाणी / अधिक</option>
+            <option value="medium" selected>Medium / Seasonal / मध्यम</option>
+            <option value="low">Low / Rain-fed / कमी / बारिश पर</option>
+            <option value="none">No Water / पानी नहीं / पाणी नाही</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label id="area-label">Land Area (Hectares)</label>
+          <input type="number" id="landArea" value="1" min="0.1" step="0.1">
+          <span class="unit">1 Hectare = 2.47 Acres</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;">
+        <button class="btn" onclick="getRecommendations()">⚡ Analyze & Get Crop Recommendations</button>
+        <button class="btn-outline" onclick="goBack(2)">← Back</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4: Crop Selection -->
+  <div id="step4" class="hidden">
+    <div class="card">
+      <div class="card-title" id="crops-title">🌾 AI Crop Recommendations</div>
+      <div class="card-desc" id="crops-desc">Based on your location and field data — select one crop</div>
+      <div class="amd-badge">⚡ AMD ROCm · AgroNova ML Engine</div>
+      <div class="crop-grid" id="cropGrid"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;">
+        <button class="btn" onclick="getCropGuidance()" id="selectBtn" style="opacity:0.4;pointer-events:none;" id="selectCropBtn">→ Get Guidance</button>
+        <button class="btn-outline" onclick="goBack(3)">← Edit Field Data</button>
+      </div>
+    </div>
+    <!-- Chat section always visible from step 4 -->
+    <div class="card" id="chatCard">
+      <div class="card-title" id="chat-title">💬 Ask AgroNova AI</div>
+      <div class="card-desc" id="chat-desc">Ask anything about crops, soil, fertilizers or market prices</div>
+      <div class="chat-box" id="chatBox"></div>
+      <div class="chat-input-row">
+        <input type="text" class="chat-input" id="chatInput" placeholder="Ask a question..." onkeydown="if(event.key==='Enter') sendChat()">
+        <button class="chat-send" onclick="sendChat()">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5: Guidance -->
+  <div id="step5" class="hidden">
+    <div class="card" id="guidanceCard"></div>
+    <div class="card" id="chatCard2">
+      <div class="card-title" id="chat2-title">💬 Ask About This Crop</div>
+      <div class="card-desc" id="chat2-desc">Ask anything specific to your selected crop</div>
+      <div class="chat-box" id="chatBox2"></div>
+      <div class="chat-input-row">
+        <input type="text" class="chat-input" id="chatInput2" placeholder="Ask about this crop..." onkeydown="if(event.key==='Enter') sendChat2()">
+        <button class="chat-send" onclick="sendChat2()">➤</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+const API = window.location.origin + '/api';
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let state = {
+  language: 'english',
+  location: '',
+  temperature: 26,
+  rainfall: 900,
+  humidity: 62,
+  soilType: 'loamy',
+  waterLevel: 'medium',
+  landArea: 1,
+  sessionId: null,
+  selectedCrop: null,
+  chatHistory: [],
+  chatHistory2: [],
+  translations: {}
+};
+
+const T = {
+  english: { step1:'Language', step2:'Location', step3:'Field Data', step4:'Crops', step5:'Guidance',
+    locTitle:'📍 Enter Your Location', locDesc:"We'll fetch real weather data for your area",
+    locLabel:'Village / City Name', fetchBtn:'🌤 Fetch Weather Data',
+    fieldTitle:'🌱 Your Field Details', fieldDesc:'Tell us about your soil and water availability',
+    soilLabel:'Soil Type', waterLabel:'Water Level / Irrigation', areaLabel:'Land Area (Hectares)',
+    analyzeBtn:'⚡ Analyze & Get Crop Recommendations',
+    cropsTitle:'🌾 AI Crop Recommendations', cropsDesc:'Based on your data — select one crop for detailed guidance',
+    selectBtn:'→ Get Full Guidance', chatTitle:'💬 Ask AgroNova AI',
+    chatDesc:'Ask anything about crops, soil, fertilizers or market prices',
+    chatPlaceholder:'Ask a question...', chatPlaceholder2:'Ask about this crop...',
+    chat2Title:'💬 Ask About This Crop', chat2Desc:'Ask anything specific to your selected crop',
+    fetchingWeather:'Fetching weather data for', weatherFetched:'Weather data fetched!',
+    analyzing:'AI is analyzing your field...',
+    aiGreet:"Hello! I'm AgroNova AI. How can I help you with your farming today?" },
+  hindi: { step1:'भाषा', step2:'स्थान', step3:'खेत की जानकारी', step4:'फसलें', step5:'मार्गदर्शन',
+    locTitle:'📍 अपना स्थान दर्ज करें', locDesc:'हम आपके क्षेत्र का मौसम डेटा लाएंगे',
+    locLabel:'गांव / शहर का नाम', fetchBtn:'🌤 मौसम डेटा लाएं',
+    fieldTitle:'🌱 आपके खेत की जानकारी', fieldDesc:'अपनी मिट्टी और पानी की उपलब्धता बताएं',
+    soilLabel:'मिट्टी का प्रकार', waterLabel:'पानी / सिंचाई', areaLabel:'भूमि क्षेत्रफल (हेक्टेयर)',
+    analyzeBtn:'⚡ विश्लेषण करें और फसल सुझाएं',
+    cropsTitle:'🌾 AI फसल अनुशंसाएं', cropsDesc:'आपके डेटा के आधार पर — एक फसल चुनें',
+    selectBtn:'→ पूरी जानकारी पाएं', chatTitle:'💬 AgroNova AI से पूछें',
+    chatDesc:'फसलें, मिट्टी, खाद या बाजार भाव के बारे में कुछ भी पूछें',
+    chatPlaceholder:'सवाल पूछें...', chatPlaceholder2:'इस फसल के बारे में पूछें...',
+    chat2Title:'💬 इस फसल के बारे में पूछें', chat2Desc:'अपनी चुनी हुई फसल के बारे में कुछ भी पूछें',
+    fetchingWeather:'मौसम डेटा लाया जा रहा है', weatherFetched:'मौसम डेटा प्राप्त हुआ!',
+    analyzing:'AI आपके खेत का विश्लेषण कर रहा है...',
+    aiGreet:"नमस्ते! मैं AgroNova AI हूं। आज आपकी खेती में कैसे मदद करूं?" },
+  marathi: { step1:'भाषा', step2:'ठिकाण', step3:'शेत माहिती', step4:'पिके', step5:'मार्गदर्शन',
+    locTitle:'📍 तुमचे ठिकाण टाका', locDesc:'आम्ही तुमच्या भागाचा हवामान डेटा आणू',
+    locLabel:'गाव / शहराचे नाव', fetchBtn:'🌤 हवामान डेटा आणा',
+    fieldTitle:'🌱 तुमच्या शेताची माहिती', fieldDesc:'तुमची माती आणि पाण्याची उपलब्धता सांगा',
+    soilLabel:'मातीचा प्रकार', waterLabel:'पाणी / सिंचन', areaLabel:'जमीन क्षेत्र (हेक्टर)',
+    analyzeBtn:'⚡ विश्लेषण करा आणि पीक सुचवा',
+    cropsTitle:'🌾 AI पीक शिफारशी', cropsDesc:'तुमच्या डेटाच्या आधारे — एक पीक निवडा',
+    selectBtn:'→ संपूर्ण मार्गदर्शन मिळवा', chatTitle:'💬 AgroNova AI ला विचारा',
+    chatDesc:'पिके, माती, खते किंवा बाजारभावाबद्दल काहीही विचारा',
+    chatPlaceholder:'प्रश्न विचारा...', chatPlaceholder2:'या पिकाबद्दल विचारा...',
+    chat2Title:'💬 या पिकाबद्दल विचारा', chat2Desc:'निवडलेल्या पिकाबद्दल काहीही विचारा',
+    fetchingWeather:'हवामान डेटा मिळवत आहे', weatherFetched:'हवामान डेटा मिळाला!',
+    analyzing:'AI तुमच्या शेताचे विश्लेषण करत आहे...',
+    aiGreet:"नमस्कार! मी AgroNova AI आहे. आज तुमच्या शेतीसाठी कशी मदत करू?" }
+};
+
+// ─── LANGUAGE ────────────────────────────────────────────────────────────────
+function selectLanguage(lang) {
+  state.language = lang;
+  document.querySelectorAll('.lang-card').forEach(c => c.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  applyTranslations();
+  setTimeout(() => { showStep(2); updateStepUI(2); }, 300);
+}
+
+function applyTranslations() {
+  const t = T[state.language];
+  document.getElementById('st1').textContent = t.step1;
+  document.getElementById('st2').textContent = t.step2;
+  document.getElementById('st3').textContent = t.step3;
+  document.getElementById('st4').textContent = t.step4;
+  document.getElementById('st5').textContent = t.step5;
+  document.getElementById('loc-title').textContent = t.locTitle;
+  document.getElementById('loc-desc').textContent = t.locDesc;
+  document.getElementById('loc-label').textContent = t.locLabel;
+  document.getElementById('fetchWeatherBtn').textContent = t.fetchBtn;
+  document.getElementById('field-title').textContent = t.fieldTitle;
+  document.getElementById('field-desc').textContent = t.fieldDesc;
+  document.getElementById('soil-label').textContent = t.soilLabel;
+  document.getElementById('water-label').textContent = t.waterLabel;
+  document.getElementById('area-label').textContent = t.areaLabel;
+  document.getElementById('chat-title').textContent = t.chatTitle;
+  document.getElementById('chat-desc').textContent = t.chatDesc;
+  document.getElementById('chatInput').placeholder = t.chatPlaceholder;
+  document.getElementById('chatInput2').placeholder = t.chatPlaceholder2;
+  document.getElementById('chat2-title').textContent = t.chat2Title;
+  document.getElementById('chat2-desc').textContent = t.chat2Desc;
+}
+
+// ─── WEATHER ──────────────────────────────────────────────────────────────────
+async function fetchWeather() {
+  const location = document.getElementById('locationInput').value.trim();
+  if (!location) { alert('Please enter a location!'); return; }
+
+  state.location = location;
+  const t = T[state.language];
+
+  document.getElementById('weatherLoading').classList.remove('hidden');
+  document.getElementById('weatherResult').classList.add('hidden');
+  document.getElementById('fetchWeatherBtn').disabled = true;
+
+  try {
+    const res = await fetch(`${API}/weather`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ location, language: state.language })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      state.temperature = data.temperature;
+      state.rainfall = data.rainfall_annual_mm;
+      state.humidity = data.humidity;
+
+      document.getElementById('weatherBadge').innerHTML = `
+        <div class="weather-item"><span>🌡️</span><span>${data.temperature}°C</span></div>
+        <div class="weather-item"><span>💧</span><span>${data.humidity}% humidity</span></div>
+        <div class="weather-item"><span>🌧️</span><span>${data.rainfall_annual_mm}mm/year rainfall</span></div>
+        <div class="weather-item"><span>📍</span><span>${data.location}</span></div>
+        ${data.demo_mode ? `<div class="weather-item"><span class="demo-note">Demo Mode</span></div>` : ''}
+      `;
+      document.getElementById('weatherResult').classList.remove('hidden');
+
+      // Auto proceed to step 3
+      setTimeout(() => { showStep(3); updateStepUI(3); }, 800);
+    } else {
+      alert(data.detail || 'Location not found!');
+    }
+  } catch (e) {
+    // Fallback if backend not running
+    state.temperature = 26;
+    state.rainfall = 900;
+    state.humidity = 62;
+    document.getElementById('weatherBadge').innerHTML = `
+      <div class="weather-item"><span>🌡️</span><span>26°C</span></div>
+      <div class="weather-item"><span>💧</span><span>62% humidity</span></div>
+      <div class="weather-item"><span>🌧️</span><span>900mm/year</span></div>
+      <div class="weather-item"><span class="demo-note">⚠️ Backend offline - using demo data</span></div>
+    `;
+    document.getElementById('weatherResult').classList.remove('hidden');
+    setTimeout(() => { showStep(3); updateStepUI(3); }, 800);
+  }
+
+  document.getElementById('weatherLoading').classList.add('hidden');
+  document.getElementById('fetchWeatherBtn').disabled = false;
+}
+
+function clearWeather() {
+  document.getElementById('weatherResult').classList.add('hidden');
+}
+
+// ─── CROP RECOMMENDATION ──────────────────────────────────────────────────────
+async function getRecommendations() {
+  const t = T[state.language];
+  state.soilType = document.getElementById('soilType').value;
+  state.waterLevel = document.getElementById('waterLevel').value;
+  state.landArea = parseFloat(document.getElementById('landArea').value) || 1;
+
+  showStep(4);
+  updateStepUI(4);
+
+  document.getElementById('crops-title').textContent = t.cropsTitle;
+  document.getElementById('crops-desc').textContent = t.cropsDesc;
+  document.getElementById('cropGrid').innerHTML = `<div class="loading-text" style="grid-column:1/-1">${t.analyzing}</div>`;
+
+  // Add first chat message
+  addChatMsg('chatBox', 'ai', t.aiGreet);
+  document.getElementById('chat-title').textContent = t.chatTitle;
+
+  try {
+    const res = await fetch(`${API}/recommend-crops`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        location: state.location,
+        temperature: state.temperature,
+        rainfall: state.rainfall,
+        humidity: state.humidity,
+        soil_type: state.soilType,
+        water_level: state.waterLevel,
+        language: state.language
+      })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      state.sessionId = data.session_id;
+      renderCrops(data.crops);
+    }
+  } catch (e) {
+    // Fallback demo crops
+    renderCrops([
+      {key:'wheat', name:'Wheat / गेहूं / गहू', emoji:'🌾', score:88, tags:['Rabi','Staple'], season:'Oct-Mar'},
+      {key:'soybean', name:'Soybean / सोयाबीन', emoji:'🫘', score:76, tags:['Kharif','Oil crop'], season:'Jun-Oct'},
+      {key:'maize', name:'Maize / मक्का / मका', emoji:'🌽', score:65, tags:['Versatile'], season:'Jun-Sep'}
+    ]);
+  }
+}
+
+function renderCrops(crops) {
+  const grid = document.getElementById('cropGrid');
+  grid.innerHTML = '';
+  const t = T[state.language];
+
+  crops.forEach((crop, i) => {
+    const card = document.createElement('div');
+    card.className = 'crop-card';
+    card.id = `crop-${crop.key}`;
+    card.innerHTML = `
+      <span class="crop-emoji">${crop.emoji}</span>
+      <div class="crop-name">${crop.name}</div>
+      <div class="match-bar"><div class="match-fill" id="fill-${crop.key}"></div></div>
+      <div class="match-pct">AI Match: ${crop.score}%</div>
+      <div class="crop-tags">${crop.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>
+    `;
+    card.onclick = () => selectCrop(crop.key);
+    grid.appendChild(card);
+    setTimeout(() => {
+      document.getElementById(`fill-${crop.key}`).style.width = crop.score + '%';
+    }, 200 + i * 150);
+  });
+
+  document.getElementById('selectBtn').textContent = t.selectBtn;
+}
+
+function selectCrop(key) {
+  state.selectedCrop = key;
+  document.querySelectorAll('.crop-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById(`crop-${key}`).classList.add('selected');
+  const btn = document.getElementById('selectBtn');
+  btn.style.opacity = '1';
+  btn.style.pointerEvents = 'auto';
+}
+
+// ─── CROP GUIDANCE ────────────────────────────────────────────────────────────
+async function getCropGuidance() {
+  if (!state.selectedCrop) return;
+  showStep(5);
+  updateStepUI(5);
+
+  document.getElementById('guidanceCard').innerHTML = `<div class="loading-text">Loading guidance...</div>`;
+
+  try {
+    const res = await fetch(`${API}/crop-guidance`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        crop_key: state.selectedCrop,
+        language: state.language,
+        area_hectares: state.landArea
+      })
+    });
+
+    const data = await res.json();
+    if (res.ok) renderGuidance(data);
+  } catch (e) {
+    document.getElementById('guidanceCard').innerHTML = `<div class="loading-text">⚠️ Backend offline. Please start the server.</div>`;
+  }
+
+  // Init chat 2
+  const t = T[state.language];
+  document.getElementById('chat2-title').textContent = t.chat2Title;
+  addChatMsg('chatBox2', 'ai', t.aiGreet);
+}
+
+function renderGuidance(data) {
+  const info = data.info;
+  const calc = data.calculator;
+  const t = T[state.language];
+
+  document.getElementById('guidanceCard').innerHTML = `
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;flex-wrap:wrap;">
+      <span style="font-size:44px;">${data.emoji}</span>
+      <div>
+        <div class="card-title" style="margin-bottom:4px;">${data.name} — Complete Guide</div>
+        <div class="amd-badge">⚡ AMD ROCm · AgroNova AI</div>
+      </div>
+      <button class="btn-outline" onclick="goBack(4)" style="margin-left:auto;">← Change Crop</button>
+    </div>
+
+    <div class="highlight-box">
+      🌱 <strong>Season:</strong> ${info.season} &nbsp;|&nbsp;
+      ⏱ <strong>Duration:</strong> ${info.duration} &nbsp;|&nbsp;
+      📦 <strong>Expected Yield:</strong> ${info.yield}
+    </div>
+
+    <hr class="divider">
+    <div class="info-title">🌱 Recommended Seeds</div>
+    <div class="seed-grid">
+      ${info.seeds.map(s => `
+        <div class="seed-card">
+          <strong>${s.name}</strong>
+          <span>${s.type}<br>Yield: ${s.yield}</span>
+        </div>
+      `).join('')}
+    </div>
+
+    <hr class="divider">
+    <div class="info-title">⚙️ Pre-Planting Steps</div>
+    <ul class="info-list">
+      ${info.pre_planting.map(p => `<li>✓ ${p}</li>`).join('')}
+    </ul>
+
+    <hr class="divider">
+    <div class="info-title">🌿 Post-Planting Care</div>
+    <ul class="info-list">
+      ${info.post_planting.map(p => `<li>✓ ${p}</li>`).join('')}
+    </ul>
+
+    <hr class="divider">
+    <div class="info-title">🧪 Fertilizer Schedule</div>
+    <ul class="info-list">
+      ${info.fertilizers.map(f => `<li><strong style="color:var(--gold-bright)">${f.name}</strong> — ${f.dose} | ${f.time}</li>`).join('')}
+    </ul>
+
+    <hr class="divider">
+    <div class="info-title">🧮 Farm Calculator</div>
+    <div class="calc-result">
+      <div class="calc-row"><span>🌾 Land Area</span><span>${calc.area_hectares} hectares</span></div>
+      <div class="calc-row"><span>📦 Expected Yield</span><span>${calc.yield_tons} T (${calc.yield_quintals} quintals)</span></div>
+      <div class="calc-row"><span>💰 Market Price</span><span>₹${calc.price_per_quintal.toLocaleString()}/quintal</span></div>
+      <div class="calc-row"><span>🛒 Gross Revenue</span><span>₹${calc.revenue.toLocaleString()}</span></div>
+      <div class="calc-row"><span>📊 Total Cost</span><span>₹${calc.total_cost.toLocaleString()}</span></div>
+      <div class="calc-row" style="font-size:14px;"><span>📈 Net Profit/Loss</span><span style="color:${calc.profit >= 0 ? 'var(--gold-bright)' : '#ff4444'}">₹${calc.profit.toLocaleString()} ${calc.profit >= 0 ? '✅' : '❌'}</span></div>
+      <div class="calc-row"><span>🎯 ROI</span><span style="color:${calc.roi >= 0 ? 'var(--gold-bright)':'#ff4444'}">${calc.roi}%</span></div>
+    </div>
+  `;
+}
+
+// ─── CHAT ─────────────────────────────────────────────────────────────────────
+function addChatMsg(boxId, role, text) {
+  const box = document.getElementById(boxId);
+  const msg = document.createElement('div');
+  msg.className = `chat-msg ${role}`;
+  if (role === 'ai') {
+    msg.innerHTML = `<span class="ai-label">🌱 AgroNova AI</span>${text}`;
+  } else {
+    msg.textContent = text;
+  }
+  box.appendChild(msg);
+  box.scrollTop = box.scrollHeight;
+}
+
+function showTyping(boxId) {
+  const box = document.getElementById(boxId);
+  const t = document.createElement('div');
+  t.className = 'typing'; t.id = boxId + '-typing';
+  t.innerHTML = '<span></span><span></span><span></span>';
+  box.appendChild(t);
+  box.scrollTop = box.scrollHeight;
+}
+
+function hideTyping(boxId) {
+  const el = document.getElementById(boxId + '-typing');
+  if (el) el.remove();
+}
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+
+  addChatMsg('chatBox', 'user', msg);
+  state.chatHistory.push({role:'user', content: msg});
+  showTyping('chatBox');
+
+  const context = {
+    location: state.location,
+    temperature: state.temperature,
+    soil: state.soilType,
+    water: state.waterLevel
+  };
+
+  try {
+    const res = await fetch(`${API}/chat`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        message: msg, language: state.language,
+        context, history: state.chatHistory.slice(-6)
+      })
+    });
+    const data = await res.json();
+    hideTyping('chatBox');
+    const reply = res.ok ? data.reply : 'Sorry, could not get response.';
+    addChatMsg('chatBox', 'ai', reply);
+    state.chatHistory.push({role:'assistant', content: reply});
+  } catch (e) {
+    hideTyping('chatBox');
+    addChatMsg('chatBox', 'ai', '⚠️ Backend offline. Please start the Python server.');
+  }
+}
+
+async function sendChat2() {
+  const input = document.getElementById('chatInput2');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+
+  addChatMsg('chatBox2', 'user', msg);
+  state.chatHistory2.push({role:'user', content: msg});
+  showTyping('chatBox2');
+
+  const context = {
+    location: state.location,
+    crop: state.selectedCrop,
+    soil: state.soilType,
+    area: state.landArea
+  };
+
+  try {
+    const res = await fetch(`${API}/chat`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        message: msg, language: state.language,
+        context, history: state.chatHistory2.slice(-6)
+      })
+    });
+    const data = await res.json();
+    hideTyping('chatBox2');
+    const reply = res.ok ? data.reply : 'Sorry, could not get response.';
+    addChatMsg('chatBox2', 'ai', reply);
+    state.chatHistory2.push({role:'assistant', content: reply});
+  } catch (e) {
+    hideTyping('chatBox2');
+    addChatMsg('chatBox2', 'ai', '⚠️ Backend offline. Please start the Python server.');
+  }
+}
+
+// ─── NAVIGATION ───────────────────────────────────────────────────────────────
+function showStep(n) {
+  [1,2,3,4,5].forEach(i => document.getElementById(`step${i}`).classList.add('hidden'));
+  document.getElementById(`step${n}`).classList.remove('hidden');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function goBack(n) { showStep(n); updateStepUI(n); }
+
+function updateStepUI(active) {
+  [1,2,3,4,5].forEach(i => {
+    const el = document.getElementById(`s${i}`);
+    el.classList.remove('active','done');
+    if (i < active) el.classList.add('done');
+    else if (i === active) el.classList.add('active');
+  });
+}
+</script>
+</body>
+</html>
