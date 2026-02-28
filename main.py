@@ -181,3 +181,12 @@ app.add_middleware(
 @app.get("/")
 def home():
     return {"message": "AgroNova backend running"}
+    # --- ADD THIS TO THE VERY BOTTOM OF main.py ---
+
+# 1. This tells the server where your HTML/CSS/Images are
+app.mount("/frontend", StaticFiles(directory="../frontend"), name="frontend")
+
+# 2. This serves your main website page when someone visits your URL
+@app.get("/")
+async def read_index():
+    return FileResponse("../frontend/index.html")
