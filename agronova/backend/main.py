@@ -99,7 +99,7 @@ TRANSLATIONS = {
 
 @app.get("/")
 def root():
-    return FileResponse("../frontend/index.html")
+    return FileResponse(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../frontend/index.html"))
 
 @app.get("/api/translations/{language}")
 def get_translations(language: str):
