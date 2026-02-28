@@ -2,29 +2,13 @@
 
 AI-powered crop recommendation system with multilingual support (English, Hindi, Marathi).
 
-## 🚀 How to Run on GitHub Codespaces
+## 🚀 How to Open
 
-### Step 1 — Install dependencies
-```bash
-cd backend
-pip install -r requirements.txt
-```
+Website:
+https://agronova-0-1-1.onrender.com
 
-### Step 2 — Set up environment variables
-```bash
-cp .env.example .env
-# Edit .env and add your API keys (optional for demo)
-```
-
-### Step 3 — Start the backend server
-```bash
-cd backend
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
-
-### Step 4 — Open the app
-- Codespaces will show a popup: **"Open in Browser"** → Click it!
-- Or go to the **Ports** tab → click the link for port 8000
+Topics:
+fastapi python agriculture india ai farming crop-recommendation multilingual
 
 ## 📁 Project Structure
 ```
@@ -52,9 +36,9 @@ agronova/
 - ✅ AI chat with farmer in their language
 - ✅ SQLite database saves all sessions
 
-## 🔑 API Keys (Optional)
-- **OpenWeatherMap** (free): https://openweathermap.org/api — for real weather
-- **Anthropic Claude** (free tier): https://console.anthropic.com — for AI chat
+## 🔑 API Keys 
+- **OpenWeatherMap** : https://openweathermap.org/api — for real weather
+- **Anthropic Claude** : https://console.anthropic.com — for AI chat
 
 Without API keys, the app runs in **demo mode** with sample data.
 
@@ -63,5 +47,4 @@ Without API keys, the app runs in **demo mode** with sample data.
 - AI model ready for **AMD ROCm** + PyTorch training
 - Edge deployment via **AMD Ryzen Embedded**
 
-## 🏆 AMD Slingshot Hackathon
-Built for AMD Slingshot Ideathon — "Human Imagination Built with AI"
+
